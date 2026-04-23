@@ -1,0 +1,17 @@
+{
+  "name": "playwright-passing-tests",
+  "version": "1.0.0",
+  "description": "Playwright tests that always pass",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed",
+    "test:ui": "npx playwright test --ui",
+    "report": "npx playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.50.0"
+  },
+  "dependencies": {
+    "tdpw": "^1.0.36"
+  }
+}
