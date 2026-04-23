@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Playwright output
+playwright-report/
+test-results/
+__screenshots__/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
