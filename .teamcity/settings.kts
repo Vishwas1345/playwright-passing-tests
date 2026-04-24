@@ -31,6 +31,11 @@ object PlaywrightTests : BuildType({
             name = "Run Playwright tests"
             scriptContent = "npx playwright test || true"
         }
+
+        script {
+            name = "Upload results to TestDino"
+            scriptContent = """npx tdpw upload ./playwright-report --token="%env.TESTDINO_TOKEN%""""
+        }
     }
 
     triggers {

@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  testdino: testdino/testdino@1.0.0
+
 jobs:
   playwright-tests:
     docker:
@@ -30,10 +33,10 @@ jobs:
           name: Run Playwright tests
           command: npx playwright test || true
 
-      - run:
-          name: Upload results to TestDino
-          command: npx tdpw upload ./playwright-report --token="$TESTDINO_TOKEN"
-          when: always
+      - testdino/upload-report:
+          report_directory: ./playwright-report
+          token: TESTDINO_TOKEN
+          upload_html: true
 
       - store_artifacts:
           path: playwright-report
