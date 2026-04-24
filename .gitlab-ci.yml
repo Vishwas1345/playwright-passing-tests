@@ -12,7 +12,6 @@ playwright-tests:
         - package-lock.json
     paths:
       - node_modules/
-      - ~/.npm/
 
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
