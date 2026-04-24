@@ -30,24 +30,7 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run Playwright tests
-        env:
-          TESTDINO_TOKEN: ${{ secrets.TESTDINO_TOKEN }}
         run: npx playwright test
-
-      - name: Debug report output
-        if: always()
-        run: |
-          echo "=== playwright-report tree ==="
-          ls -la playwright-report/ || echo "playwright-report/ missing"
-          echo "=== report.json head ==="
-          if [ -f playwright-report/report.json ]; then
-            echo "size: $(wc -c < playwright-report/report.json) bytes"
-            head -c 500 playwright-report/report.json
-            echo ""
-            node -e "const r=require('./playwright-report/report.json'); console.log('keys:', Object.keys(r).join(','))" || echo "JSON parse failed"
-          else
-            echo "report.json does not exist"
-          fi
 
       - name: Upload to TestDino
         if: always()
