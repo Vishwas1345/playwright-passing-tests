@@ -1,0 +1,33 @@
+stages:
+  - test
+
+playwright-tests:
+  stage: test
+  image: node:20
+  timeout: 60 minutes
+
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - node_modules/
+      - ~/.npm/
+
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'   # equivalent to workflow_dispatch (manual trigger)
+
+  script:
+    - npm ci
+    - npx playwright install --with-deps
+    - npx playwright test || true
+    - npx tdpw upload ./playwright-report --token="$TESTDINO_TOKEN" --upload-html
+
+  artifacts:
+    when: always
+    paths:
+      - playwright-report/
+      - test-results/
+    expire_in: 30 days
