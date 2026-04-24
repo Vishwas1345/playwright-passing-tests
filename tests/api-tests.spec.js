@@ -153,8 +153,8 @@ test.describe('API Data Transformation @api', () => {
       return acc;
     }, {});
 
-    expect(grouped.A).toEqual([1, 3]);
-    expect(grouped.B).toEqual([2]);
+    expect(grouped['A']).toEqual([1, 3]);
+    expect(grouped['B']).toEqual([2]);
   });
 
 });
