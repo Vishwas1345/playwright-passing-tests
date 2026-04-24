@@ -16,6 +16,10 @@ phases:
     commands:
       - npx playwright test || true
 
+  post_build:
+    commands:
+      - npx tdpw upload ./playwright-report --token="$TESTDINO_TOKEN"
+
 artifacts:
   files:
     - playwright-report/**/*

@@ -6,6 +6,10 @@ pipeline {
         }
     }
 
+    environment {
+        TESTDINO_TOKEN = credentials('TESTDINO_TOKEN')
+    }
+
     options {
         timeout(time: 60, unit: 'MINUTES')
     }
@@ -37,6 +41,9 @@ pipeline {
 
     post {
         always {
+            // Upload results to TestDino
+            sh 'npx tdpw upload ./playwright-report --token="$TESTDINO_TOKEN"'
+
             // Archive the HTML report and JSON results
             archiveArtifacts artifacts: 'playwright-report/**', allowEmptyArchive: true
 

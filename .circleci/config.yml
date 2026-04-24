@@ -30,6 +30,11 @@ jobs:
           name: Run Playwright tests
           command: npx playwright test || true
 
+      - run:
+          name: Upload results to TestDino
+          command: npx tdpw upload ./playwright-report --token="$TESTDINO_TOKEN"
+          when: always
+
       - store_artifacts:
           path: playwright-report
           destination: playwright-report
