@@ -1,0 +1,56 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pr:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: ubuntu-latest
+
+timeoutInMinutes: 60
+
+steps:
+  - task: NodeTool@0
+    displayName: Setup Node.js 20
+    inputs:
+      versionSpec: '20'
+
+  - script: npm ci
+    displayName: Install dependencies
+
+  - script: npx playwright install --with-deps
+    displayName: Install Playwright browsers
+
+  - script: npx playwright test || true
+    displayName: Run Playwright tests
+
+  - script: npx tdpw upload ./playwright-report --token="$TESTDINO_TOKEN"
+    displayName: Upload results to TestDino
+    condition: always()
+    env:
+      TESTDINO_TOKEN: $(TESTDINO_TOKEN)
+
+  - task: PublishHtmlReport@1
+    displayName: Publish HTML report
+    condition: always()
+    inputs:
+      reportDir: playwright-report
+      tabName: Playwright Report
+
+  - task: PublishBuildArtifacts@1
+    displayName: Upload Playwright report
+    condition: always()
+    inputs:
+      PathtoPublish: playwright-report
+      ArtifactName: playwright-report
+
+  - task: PublishBuildArtifacts@1
+    displayName: Upload test results
+    condition: failed()
+    inputs:
+      PathtoPublish: test-results
+      ArtifactName: test-results

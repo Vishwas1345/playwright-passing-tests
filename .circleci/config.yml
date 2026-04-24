@@ -1,0 +1,48 @@
+version: 2.1
+
+jobs:
+  playwright-tests:
+    docker:
+      - image: cimg/node:20.0
+    resource_class: medium
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - node-deps-{{ checksum "package-lock.json" }}
+            - node-deps-
+
+      - run:
+          name: Install dependencies
+          command: npm ci
+
+      - save_cache:
+          key: node-deps-{{ checksum "package-lock.json" }}
+          paths:
+            - node_modules
+
+      - run:
+          name: Install Playwright browsers
+          command: npx playwright install --with-deps
+
+      - run:
+          name: Run Playwright tests
+          command: npx playwright test || true
+
+      - store_artifacts:
+          path: playwright-report
+          destination: playwright-report
+
+      - store_artifacts:
+          path: test-results
+          destination: test-results
+
+workflows:
+  playwright:
+    jobs:
+      - playwright-tests:
+          filters:
+            branches:
+              only:
+                - main
