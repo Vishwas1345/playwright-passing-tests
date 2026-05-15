@@ -97,4 +97,49 @@ test.describe('Firefox Array Operations @firefox', () => {
     expect(sum).toBe(15);
   });
 
+  test('array indexOf', async () => {
+    const items = ['a', 'b', 'c', 'd'];
+    expect(items.indexOf('c')).toBe(2);
+    expect(items.indexOf('z')).toBe(-1);
+  });
+
+  test('array includes wrong expectation', async () => {
+    const numbers = [1, 2, 3];
+    expect(numbers.includes(4)).toBe(true); // intentional failure
+  });
+
+  test('array slice', async () => {
+    const arr = [1, 2, 3, 4, 5];
+    expect(arr.slice(1, 4)).toEqual([2, 3, 4]);
+  });
+
+  test('array reverse', async () => {
+    expect([1, 2, 3].reverse()).toEqual([3, 2, 1]);
+  });
+
+  test('array sort numeric', async () => {
+    const nums = [3, 1, 4, 1, 5, 9, 2, 6];
+    expect(nums.sort((a, b) => a - b)).toEqual([1, 1, 2, 3, 4, 5, 6, 9]);
+  });
+
+});
+
+test.describe('Firefox Flaky Behavior @firefox', () => {
+
+  test('flaky stochastic counter', async () => {
+    let counter = 0;
+    for (let i = 0; i < 5; i++) {
+      if (Math.random() > 0.3) counter++;
+    }
+    // Expects at least 4 of 5 iterations to increment; occasionally fewer do
+    expect(counter).toBeGreaterThanOrEqual(4);
+  });
+
+  test('flaky delayed promise', async () => {
+    const start = Date.now();
+    await new Promise((resolve) => setTimeout(resolve, 20 + Math.random() * 30));
+    // Asserts that the delayed promise resolved under 45ms
+    expect(Date.now() - start).toBeLessThan(45);
+  });
+
 });

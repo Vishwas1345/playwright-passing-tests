@@ -188,4 +188,90 @@ test.describe('API Validation @api', () => {
     expect(items.length).toBeGreaterThan(0);
   });
 
+  test('validate password strength', async () => {
+    const password = 'Abc1';
+    const isStrong = password.length >= 8;
+    expect(isStrong).toBe(true); // intentional failure: too short
+  });
+
+  test('validate URL format', async () => {
+    const url = 'https://api.example.com/v1/users';
+    const urlRegex = /^https?:\/\/[^\s]+$/;
+    expect(urlRegex.test(url)).toBe(true);
+  });
+
+});
+
+test.describe('API Status Code Handling @api', () => {
+
+  test('2xx success codes', async () => {
+    const successCodes = [200, 201, 202, 204];
+    successCodes.forEach((code) => {
+      expect(code).toBeGreaterThanOrEqual(200);
+      expect(code).toBeLessThan(300);
+    });
+  });
+
+  test('4xx client error codes', async () => {
+    const clientErrorCodes = [400, 401, 403, 404, 422];
+    clientErrorCodes.forEach((code) => {
+      expect(code).toBeGreaterThanOrEqual(400);
+      expect(code).toBeLessThan(500);
+    });
+  });
+
+  test('5xx server error codes', async () => {
+    const serverErrorCodes = [500, 502, 503, 504];
+    serverErrorCodes.forEach((code) => {
+      expect(code).toBeGreaterThanOrEqual(500);
+    });
+  });
+
+  test('status code categorization', async () => {
+    const categorize = (code) => {
+      if (code >= 200 && code < 300) return 'success';
+      if (code >= 400 && code < 500) return 'client_error';
+      if (code >= 500) return 'server_error';
+      return 'other';
+    };
+
+    expect(categorize(200)).toBe('success');
+    expect(categorize(404)).toBe('client_error');
+    expect(categorize(500)).toBe('server_error');
+  });
+
+  test('wrong status code mapping', async () => {
+    // 304 Not Modified is a redirect-class code, but this test mislabels it
+    const code = 304;
+    expect(code).toBeGreaterThanOrEqual(400); // intentional failure
+  });
+
+});
+
+test.describe('API Flaky Behavior @api', () => {
+
+  test('flaky simulated network latency', async () => {
+    const latency = Math.floor(Math.random() * 400);
+    // Asserts the simulated request returned within an SLA of 300ms
+    expect(latency).toBeLessThan(300);
+  });
+
+  test('flaky simulated response sampling', async () => {
+    const responses = ['ok', 'ok', 'ok', 'ok', 'timeout'];
+    const sampled = responses[Math.floor(Math.random() * responses.length)];
+    // ~20% chance of sampling 'timeout' and failing the assertion
+    expect(sampled).toBe('ok');
+  });
+
+  test('flaky retry-count simulation', async () => {
+    let attempts = 0;
+    const maxAttempts = 3;
+    while (attempts < maxAttempts) {
+      attempts++;
+      if (Math.random() > 0.4) break;
+    }
+    // Sometimes the loop hits maxAttempts and this assertion fails
+    expect(attempts).toBeLessThan(maxAttempts);
+  });
+
 });

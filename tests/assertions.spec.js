@@ -88,4 +88,69 @@ test.describe('Object Assertions @chromium', () => {
     expect(data.user.active).toBeTruthy();
   });
 
+  test('object key count', async () => {
+    const settings = { theme: 'dark', lang: 'en', fontSize: 14, notifications: true };
+    expect(Object.keys(settings)).toHaveLength(4);
+  });
+
+  test('object property type mismatch', async () => {
+    const product = { price: '99.99', inStock: true };
+    expect(typeof product.price).toBe('number'); // intentional failure: it's a string
+  });
+
+});
+
+test.describe('String Manipulation @chromium', () => {
+
+  test('string repeat', async () => {
+    expect('ab'.repeat(3)).toBe('ababab');
+  });
+
+  test('string padStart', async () => {
+    expect('5'.padStart(3, '0')).toBe('005');
+  });
+
+  test('string padEnd', async () => {
+    expect('5'.padEnd(3, '0')).toBe('500');
+  });
+
+  test('string startsWith and endsWith', async () => {
+    expect('playwright-test'.startsWith('play')).toBe(true);
+    expect('playwright-test'.endsWith('test')).toBe(true);
+  });
+
+  test('string includes case mismatch', async () => {
+    expect('Hello World'.includes('hello')).toBe(true); // intentional failure: case-sensitive
+  });
+
+  test('string slice operation', async () => {
+    expect('javascript'.slice(0, 4)).toBe('java');
+    expect('javascript'.slice(-6)).toBe('script');
+  });
+
+});
+
+test.describe('Flaky Assertion Behavior @chromium', () => {
+
+  test('flaky random threshold check', async () => {
+    // Passes ~70% of the time; failures retry once and usually pass -> flaky
+    const value = Math.random();
+    expect(value).toBeLessThan(0.7);
+  });
+
+  test('flaky timing-sensitive assertion', async () => {
+    const start = Date.now();
+    await new Promise((resolve) => setTimeout(resolve, 30 + Math.random() * 40));
+    const elapsed = Date.now() - start;
+    // Fails when the random delay pushes elapsed above 60ms
+    expect(elapsed).toBeLessThan(60);
+  });
+
+  test('flaky array sampling', async () => {
+    const pool = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    const sample = pool[Math.floor(Math.random() * pool.length)];
+    // Asserts the sampled value falls in the lower 70% of the pool
+    expect(sample).toBeLessThanOrEqual(7);
+  });
+
 });

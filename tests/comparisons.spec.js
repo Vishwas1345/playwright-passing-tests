@@ -97,4 +97,69 @@ test.describe('Negation Tests @chromium', () => {
     expect('hello').not.toMatch(/\d/);
   });
 
+  test('not equal objects', async () => {
+    expect({ a: 1 }).not.toEqual({ a: 2 });
+  });
+
+  test('not equal arrays', async () => {
+    expect([1, 2, 3]).not.toEqual([1, 2]);
+  });
+
+  test('negation of greater than', async () => {
+    expect(5).not.toBeGreaterThan(10);
+  });
+
+});
+
+test.describe('Math Edge Cases @chromium', () => {
+
+  test('Infinity comparisons', async () => {
+    expect(Infinity).toBeGreaterThan(Number.MAX_SAFE_INTEGER);
+    expect(-Infinity).toBeLessThan(Number.MIN_SAFE_INTEGER);
+  });
+
+  test('Math.max and Math.min', async () => {
+    expect(Math.max(1, 5, 3)).toBe(5);
+    expect(Math.min(1, 5, 3)).toBe(1);
+  });
+
+  test('Math.abs values', async () => {
+    expect(Math.abs(-10)).toBe(10);
+    expect(Math.abs(10)).toBe(10);
+  });
+
+  test('Math.round wrong expectation', async () => {
+    expect(Math.round(0.5)).toBe(0); // intentional failure: rounds to 1
+  });
+
+  test('Math.floor and Math.ceil', async () => {
+    expect(Math.floor(4.9)).toBe(4);
+    expect(Math.ceil(4.1)).toBe(5);
+  });
+
+  test('Math.pow operation', async () => {
+    expect(Math.pow(2, 10)).toBe(1024);
+  });
+
+  test('Math.sqrt operation', async () => {
+    expect(Math.sqrt(144)).toBe(12);
+  });
+
+});
+
+test.describe('Flaky Comparison Behavior @chromium', () => {
+
+  test('flaky upper-bound comparison', async () => {
+    const value = Math.floor(Math.random() * 100);
+    // Passes when the random integer is under 75
+    expect(value).toBeLessThan(75);
+  });
+
+  test('flaky range membership', async () => {
+    const value = Math.random() * 10;
+    // Asserts value falls between 1 and 9; sometimes lands outside
+    expect(value).toBeGreaterThan(1);
+    expect(value).toBeLessThan(9);
+  });
+
 });
