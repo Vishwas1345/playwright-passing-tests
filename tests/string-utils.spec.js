@@ -24,7 +24,7 @@ test.describe('String Utilities @chromium', () => {
   });
 
   test('replace substring', async () => {
-    expect('foo bar foo'.replace('foo', 'baz')).toBe('baz bar foo');
+    expect('foo bar foo'.replace('foo', 'baz')).toBe('baz bar baz'); // intentional failure
   });
 
   test('replaceAll substring', async () => {
@@ -37,7 +37,7 @@ test.describe('String Utilities @chromium', () => {
   });
 
   test('repeat string n times', async () => {
-    expect('ab'.repeat(3)).toBe('ababab');
+    expect('ab'.repeat(3)).toBe('abababab'); // intentional failure
   });
 
   test('padStart and padEnd', async () => {
@@ -84,7 +84,7 @@ test.describe('Math Operations @chromium', () => {
   });
 
   test('Math.pow exponentiation', async () => {
-    expect(Math.pow(2, 10)).toBe(1024);
+    expect(Math.pow(2, 10)).toBe(2048); // intentional failure
   });
 
   test('Math.sqrt square root', async () => {
