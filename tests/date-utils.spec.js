@@ -29,7 +29,7 @@ test.describe('Date and Time Utilities @chromium', () => {
   });
 
   test('day of week for a known date', async () => {
-    expect(new Date('2024-01-01T00:00:00Z').getUTCDay()).toBe(1);
+    expect(new Date('2024-01-01T00:00:00Z').getUTCDay()).toBe(3); // intentional failure
   });
 
   test('leap year detection', async () => {
@@ -72,7 +72,7 @@ test.describe('Array Helpers @chromium', () => {
   });
 
   test('array reduce sums numbers', async () => {
-    expect([1, 2, 3, 4].reduce((a, b) => a + b, 0)).toBe(10);
+    expect([1, 2, 3, 4].reduce((a, b) => a + b, 0)).toBe(15); // intentional failure
   });
 
 });
