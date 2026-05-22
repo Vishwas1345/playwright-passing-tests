@@ -14,6 +14,7 @@ definitions:
         script:
           - node -v
           - npm ci
+          - 'node -e "const v=require(''./node_modules/tdpw/package.json'').version; if (v !== ''1.0.37'') { console.error(''Expected tdpw 1.0.37 but got ''+v); process.exit(1); } console.log(''tdpw version OK: ''+v);"'
           - npx playwright install --with-deps
           - npx playwright test || true
           - npx tdpw upload ./playwright-report --json-report ./report.json --token="$TESTDINO_TOKEN" --upload-html
