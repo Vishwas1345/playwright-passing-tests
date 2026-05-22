@@ -15,7 +15,7 @@ definitions:
           - npm ci
           - npx playwright install --with-deps
           - npx playwright test || true
-          - npx tdpw upload ./playwright-report --token="$TESTDINO_TOKEN" --upload-html
+          - npx tdpw upload ./playwright-report --json-report ./report.json --token="$TESTDINO_TOKEN" --upload-html
         artifacts:
           - playwright-report/**
           - test-results/**

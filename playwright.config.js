@@ -23,7 +23,7 @@ export default defineConfig({
 
   reporter: [
     ['html', { outputDir: './playwright-report' }],
-    ['json', { outputFile: './playwright-report/report.json' }],
+    ['json', { outputFile: './report.json' }],
     currentsReporter(),
   ],
 
