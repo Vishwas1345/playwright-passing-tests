@@ -1,6 +1,5 @@
 // @ts-check
 import { defineConfig, devices } from '@playwright/test';
-import { currentsReporter } from '@currents/playwright';
 import dotenv from 'dotenv';
 
 // Load environment variables
@@ -22,9 +21,8 @@ export default defineConfig({
   },
 
   reporter: [
-    ['html', { outputDir: './playwright-report' }],
+    ['html', { outputFolder: './playwright-report', open: 'never' }],
     ['json', { outputFile: './report.json' }],
-    currentsReporter(),
   ],
 
   use: {
