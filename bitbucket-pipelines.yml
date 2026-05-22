@@ -1,0 +1,34 @@
+image: mcr.microsoft.com/playwright:v1.48.0-jammy
+
+definitions:
+  caches:
+    npm: ~/.npm
+  steps:
+    - step: &playwright-tests
+        name: Run Playwright tests
+        size: 2x
+        max-time: 60
+        caches:
+          - npm
+          - node
+        script:
+          - npm ci
+          - npx playwright install --with-deps
+          - npx playwright test || true
+          - npx tdpw upload ./playwright-report --token="$TESTDINO_TOKEN" --upload-html
+        artifacts:
+          - playwright-report/**
+          - test-results/**
+
+pipelines:
+  default:
+    - step: *playwright-tests
+  branches:
+    main:
+      - step: *playwright-tests
+  pull-requests:
+    '**':
+      - step: *playwright-tests
+  custom:
+    manual-run:
+      - step: *playwright-tests

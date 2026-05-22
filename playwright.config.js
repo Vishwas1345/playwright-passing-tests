@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig, devices } from '@playwright/test';
+import { currentsReporter } from '@currents/playwright';
 import dotenv from 'dotenv';
 
 // Load environment variables
@@ -19,18 +20,19 @@ export default defineConfig({
   expect: {
     timeout: 10 * 1000,
   },
-  
+
   reporter: [
-    ['html', { outputDir: './playwright-report', open: 'never' }],
+    ['html', { outputDir: './playwright-report' }],
     ['json', { outputFile: './playwright-report/report.json' }],
+    currentsReporter(),
   ],
 
   use: {
     baseURL: 'https://storedemo.testdino.com/products',
     headless: true,
-    trace: 'retain-on-failure',
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    trace: 'on',
+    screenshot: 'on',
+    video: 'on',
     actionTimeout: 15 * 1000,
     navigationTimeout: 30 * 1000,
   },
