@@ -1,4 +1,4 @@
-image: mcr.microsoft.com/playwright:v1.48.0-jammy
+image: mcr.microsoft.com/playwright:v1.50.0-jammy
 
 definitions:
   caches:
@@ -12,6 +12,7 @@ definitions:
           - npm
           - node
         script:
+          - node -v
           - npm ci
           - npx playwright install --with-deps
           - npx playwright test || true
