@@ -20,10 +20,11 @@ export default defineConfig({
     timeout: 10 * 1000,
   },
 
-  reporter: [
-    ['html', { outputFolder: './playwright-report', open: 'never' }],
-    ['json', { outputFile: './report.json' }],
-  ],
+// Add this in playwright.config.js|ts|mjs
+reporter: [
+  ['html', { outputDir: './playwright-report' }],
+  ['json', { outputFile: './playwright-report/report.json' }],
+],
 
   use: {
     baseURL: 'https://storedemo.testdino.com/products',
