@@ -41,29 +41,11 @@ jobs:
       - name: Run Playwright tests
         run: npx playwright test || true
 
-      - name: Inspect token shape (debug)
-        if: always()
-        env:
-          TESTDINO_TOKEN: ${{ secrets.TESTDINO_TOKEN }}
-          TESTDINO_API_URL: ${{ secrets.TESTDINO_API_URL }}
-        run: |
-          node -e "
-            const t = process.env.TESTDINO_TOKEN || '';
-            const u = process.env.TESTDINO_API_URL || '';
-            console.log('token.present=' + (t.length > 0));
-            console.log('token.length=' + t.length);
-            console.log('token.hasWhitespace=' + /\s/.test(t));
-            console.log('token.matchesFormat=' + /^trx_(development|staging|production)_[a-f0-9]{64}$/.test(t));
-            console.log('apiUrl.present=' + (u.length > 0));
-            console.log('apiUrl.length=' + u.length);
-          "
-
       - name: Upload to TestDino
         if: always()
         env:
-          TESTDINO_TOKEN: ${{ secrets.TESTDINO_TOKEN }}
           TESTDINO_API_URL: ${{ secrets.TESTDINO_API_URL }}
-        run: npx tdpw upload ./playwright-report --upload-html --upload-traces --verbose
+        run: npx tdpw upload ./playwright-report --token="${{ secrets.TESTDINO_TOKEN }}" --upload-html --upload-traces --verbose
 
       - name: Upload Playwright HTML report
         if: ${{ !cancelled() }}
