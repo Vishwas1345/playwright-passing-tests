@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "dotenv": "^16.6.1",
-    "tdpw": "file:./vendor/tdpw-1.0.37.tgz"
+    "tdpw": "^1.0.37"
   },
   "overrides": {
     "chalk": "^4.1.2",
