@@ -1,0 +1,105 @@
+{
+    "success": true,
+    "data": {
+        "metadata": {
+            "testRun": {
+                "counter": 742,
+                "git": {
+                    "branch": "main",
+                    "environment": "main",
+                    "commit": {
+                        "author": "kriti2710"
+                    },
+                    "repository": {
+                        "url": "https://github.com/testdino-hq/playwright-sample-tests-javascript"
+                    }
+                }
+            },
+            "testCase": {
+                "status": "failed",
+                "title": "Verify that User Can Complete the Journey from Login to Order Placement",
+                "browser": "webkit",
+                "tags": [
+                    "@webkit"
+                ],
+                "annotations": [],
+                "startTime": "2026-06-10T05:02:12.609Z",
+                "file": "product.spec.js",
+                "suiteName": "product.spec.js > Order Placement > Login to Order Completion > Verify that User Can Complete the Journey from Login to Order Placement"
+            }
+        },
+        "overview": {
+            "failure_category": "bug",
+            "confidence": 0.5219410017264897,
+            "status": "failed",
+            "error_type": "timeout_issues",
+            "duration": 59442,
+            "retries": 1,
+            "attempts": [
+                {
+                    "error": {
+                        "stack": "Error: expect(locator).toBeVisible() failed\n\nLocator: locator('h1[data-testid=\\'checkout-title\\']')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" with timeout 10000ms\n  - waiting for locator('h1[data-testid=\\'checkout-title\\']')\n\n\n\n   at ../pages/CheckoutPage.js:255\n\n  253 |     \n  254 |     async verifyCheckoutTitle() {\n> 255 |         await expect(this.page.locator(this.locators.checkoutTitle)).toBeVisible();\n      |                                                                      ^\n  256 |     }\n  257 |\n  258 |     async verifyProductInCheckout(productName) {\n    at CheckoutPage.verifyCheckoutTitle (/home/runner/work/playwright-sample-tests-javascript/playwright-sample-tests-javascript/pages/CheckoutPage.js:255:70)\n    at /home/runner/work/playwright-sample-tests-javascript/playwright-sample-tests-javascript/tests/product.spec.js:136:35"
+                    },
+                    "status": "failed",
+                    "duration": 34061,
+                    "console": [],
+                    "attachments": [
+                        {
+                            "name": "screenshot",
+                            "contentType": "image/png",
+                            "path": "https://testdinostr.blob.core.windows.net/production-data/2026/06/10/mq7lu5mrjz6ylzk6r/json/attachments/mq7lu805_griwp4.png?sv=2026-02-06&spr=https&st=2026-06-10T08%3A41%3A18Z&se=2026-06-10T09%3A41%3A18Z&sr=b&sp=r&sig=pY45Mz4ezZlixS3ZLkn4A%2FMQWsqwy3kQNAFUhwq4QqM%3D"
+                        },
+                        {
+                            "name": "video",
+                            "contentType": "video/webm",
+                            "path": "https://testdinostr.blob.core.windows.net/production-data/2026/06/10/mq7lu5mrjz6ylzk6r/json/attachments/mq7lu91y_9k47un.webm?sv=2026-02-06&spr=https&st=2026-06-10T08%3A41%3A18Z&se=2026-06-10T09%3A41%3A18Z&sr=b&sp=r&sig=J7QEsg%2BFUBxtU1%2FPUi6Nym1YbUqswRDmTncZjHjg73Q%3D"
+                        },
+                        {
+                            "name": "error-context",
+                            "contentType": "text/markdown",
+                            "path": null
+                        },
+                        {
+                            "name": "trace",
+                            "contentType": "application/zip",
+                            "path": "https://testdinostr.blob.core.windows.net/production-data/2026/06/10/mq7lu5mrjz6ylzk6r/json/traces/mq7luhfk_v23i2f.zip?sv=2026-02-06&spr=https&st=2026-06-10T08%3A41%3A18Z&se=2026-06-10T09%3A41%3A18Z&sr=b&sp=r&sig=zkPydzv3Chj4Nlnc0KIwWwBh1AJJkq2WJzi%2FqyhIwig%3D"
+                        }
+                    ],
+                    "steps": []
+                },
+                {
+                    "error": {
+                        "stack": "Error: expect(locator).toBeVisible() failed\n\nLocator: locator('h1[data-testid=\\'checkout-title\\']')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" with timeout 10000ms\n  - waiting for locator('h1[data-testid=\\'checkout-title\\']')\n\n\n\n   at ../pages/CheckoutPage.js:255\n\n  253 |     \n  254 |     async verifyCheckoutTitle() {\n> 255 |         await expect(this.page.locator(this.locators.checkoutTitle)).toBeVisible();\n      |                                                                      ^\n  256 |     }\n  257 |\n  258 |     async verifyProductInCheckout(productName) {\n    at CheckoutPage.verifyCheckoutTitle (/home/runner/work/playwright-sample-tests-javascript/playwright-sample-tests-javascript/pages/CheckoutPage.js:255:70)\n    at /home/runner/work/playwright-sample-tests-javascript/playwright-sample-tests-javascript/tests/product.spec.js:136:35"
+                    },
+                    "status": "failed",
+                    "duration": 25381,
+                    "console": [],
+                    "attachments": [
+                        {
+                            "name": "screenshot",
+                            "contentType": "image/png",
+                            "path": "https://testdinostr.blob.core.windows.net/production-data/2026/06/10/mq7lu5mrjz6ylzk6r/json/attachments/mq7lu805_non0ep.png?sv=2026-02-06&spr=https&st=2026-06-10T08%3A41%3A18Z&se=2026-06-10T09%3A41%3A18Z&sr=b&sp=r&sig=TfzVlHcybbIUwm5A0cnUTv7XHcAppKBepC%2FO8Mh4GC8%3D"
+                        },
+                        {
+                            "name": "video",
+                            "contentType": "video/webm",
+                            "path": "https://testdinostr.blob.core.windows.net/production-data/2026/06/10/mq7lu5mrjz6ylzk6r/json/attachments/mq7lu91y_042ckf.webm?sv=2026-02-06&spr=https&st=2026-06-10T08%3A41%3A18Z&se=2026-06-10T09%3A41%3A18Z&sr=b&sp=r&sig=7ghgriOcUYSsm0OuOlVsORFEOIE3TSt4hej5OweCpcU%3D"
+                        },
+                        {
+                            "name": "error-context",
+                            "contentType": "text/markdown",
+                            "path": null
+                        },
+                        {
+                            "name": "trace",
+                            "contentType": "application/zip",
+                            "path": "https://testdinostr.blob.core.windows.net/production-data/2026/06/10/mq7lu5mrjz6ylzk6r/json/traces/mq7luhm5_0hjj2a.zip?sv=2026-02-06&spr=https&st=2026-06-10T08%3A41%3A18Z&se=2026-06-10T09%3A41%3A18Z&sr=b&sp=r&sig=ovqFYQc7aRu9%2B2bMi7OFK6fCXoCl5PdxBzAH%2Bmd1nTU%3D"
+                        }
+                    ],
+                    "steps": []
+                }
+            ]
+        },
+        "url": "https://app.testdino.com/org_68ac45bc1956c21bcc3b5d7b/projects/project_68ac45e21956c21bcc3b5d9f/test-runs/test_run_6a28f088c2ac82310eba5b3c/test_case_6a28f089c2ac82310eba5b5e"
+    }
+}

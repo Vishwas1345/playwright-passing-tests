@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'node:20'
-            args '--ipc=host'
-        }
-    }
+    agent none
 
     environment {
         TESTDINO_TOKEN = credentials('TESTDINO_TOKEN')
@@ -20,47 +15,70 @@ pipeline {
     }
 
     stages {
-        stage('Install dependencies') {
+        stage('Shard tests') {
+            matrix {
+                axes {
+                    axis {
+                        name 'SHARD'
+                        values '1', '2', '3', '4'
+                    }
+                }
+                agent {
+                    docker {
+                        image 'mcr.microsoft.com/playwright:v1.50.0-jammy'
+                        args '--ipc=host'
+                    }
+                }
+                stages {
+                    stage('Run shard') {
+                        steps {
+                            sh 'npm ci'
+                            sh "npx playwright test --shard=${SHARD}/4 --reporter=blob || true"
+                            sh "mv blob-report blob-report-${SHARD}"
+                            stash name: "blob-${SHARD}", includes: "blob-report-${SHARD}/**"
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Merge and upload') {
+            agent {
+                docker {
+                    image 'mcr.microsoft.com/playwright:v1.50.0-jammy'
+                    args '--ipc=host'
+                }
+            }
             steps {
                 sh 'npm ci'
+                unstash 'blob-1'
+                unstash 'blob-2'
+                unstash 'blob-3'
+                unstash 'blob-4'
+                sh 'mkdir -p all-blob-reports && find blob-report-* -name "*.zip" -exec mv {} all-blob-reports/ \\;'
+                sh '''
+                    export PLAYWRIGHT_HTML_REPORT=./playwright-report
+                    export PLAYWRIGHT_JSON_OUTPUT_NAME=./playwright-report/report.json
+                    npx playwright merge-reports --reporter html,json ./all-blob-reports
+                '''
+                sh 'npx tdpw upload ./playwright-report --token="$TESTDINO_TOKEN" --upload-html --upload-traces --verbose'
             }
-        }
+            post {
+                always {
+                    // Archive the merged HTML report and JSON results
+                    archiveArtifacts artifacts: 'playwright-report/**', allowEmptyArchive: true
 
-        stage('Install Playwright browsers') {
-            steps {
-                sh 'npx playwright install --with-deps'
+                    // Publish HTML report in Jenkins UI (requires HTML Publisher plugin)
+                    publishHTML(target: [
+                        allowMissing         : true,
+                        alwaysLinkToLastBuild: true,
+                        keepAll              : true,
+                        reportDir            : 'playwright-report',
+                        reportFiles          : 'index.html',
+                        reportName           : 'Playwright Report'
+                    ])
+                }
             }
-        }
-
-        stage('Run Playwright tests') {
-            steps {
-                sh 'npx playwright test || true'
-            }
-        }
-    }
-
-    post {
-        always {
-            // Upload results to TestDino
-            sh 'npx tdpw upload ./playwright-report --token="$TESTDINO_TOKEN"'
-
-            // Archive the HTML report and JSON results
-            archiveArtifacts artifacts: 'playwright-report/**', allowEmptyArchive: true
-
-            // Publish HTML report in Jenkins UI (requires HTML Publisher plugin)
-            publishHTML(target: [
-                allowMissing         : true,
-                alwaysLinkToLastBuild: true,
-                keepAll              : true,
-                reportDir            : 'playwright-report',
-                reportFiles          : 'index.html',
-                reportName           : 'Playwright Report'
-            ])
-        }
-
-        failure {
-            // Archive raw test results only on failure
-            archiveArtifacts artifacts: 'test-results/**', allowEmptyArchive: true
         }
     }
 }

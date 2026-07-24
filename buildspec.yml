@@ -1,5 +1,39 @@
 version: 0.2
 
+# Sharded Playwright run for AWS CodeBuild.
+#
+# PREREQUISITES (CodeBuild builds do not share a filesystem, so sharded builds
+# hand their blob reports to the merge build via S3):
+#   1. Enable "Batch build" on the CodeBuild project (build-graph below fans out).
+#   2. Set project env var BLOB_BUCKET to an S3 bucket the build role can
+#      read/write, and TESTDINO_TOKEN to your TestDino token.
+#   3. Grant the CodeBuild service role s3:PutObject/GetObject/DeleteObject/ListBucket
+#      on that bucket.
+
+batch:
+  fast-fail: false
+  build-graph:
+    - identifier: shard1
+      env:
+        variables: { ROLE: shard, PW_SHARD: "1", PW_TOTAL: "4" }
+    - identifier: shard2
+      env:
+        variables: { ROLE: shard, PW_SHARD: "2", PW_TOTAL: "4" }
+    - identifier: shard3
+      env:
+        variables: { ROLE: shard, PW_SHARD: "3", PW_TOTAL: "4" }
+    - identifier: shard4
+      env:
+        variables: { ROLE: shard, PW_SHARD: "4", PW_TOTAL: "4" }
+    - identifier: merge
+      depend-on:
+        - shard1
+        - shard2
+        - shard3
+        - shard4
+      env:
+        variables: { ROLE: merge }
+
 env:
   variables:
     NODE_ENV: test
@@ -10,20 +44,39 @@ phases:
       nodejs: 20
     commands:
       - npm ci
-      - npx playwright install --with-deps
+      # Browsers are only needed to actually run tests, not to merge reports.
+      - if [ "$ROLE" = "shard" ]; then npx playwright install --with-deps; fi
 
   build:
     commands:
-      - npx playwright test || true
+      - |
+        if [ "$ROLE" = "shard" ]; then
+          npx playwright test --shard=$PW_SHARD/$PW_TOTAL --reporter=blob || true
+          mv blob-report blob-report-$PW_SHARD
+          aws s3 cp blob-report-$PW_SHARD \
+            s3://$BLOB_BUCKET/$CODEBUILD_RESOLVED_SOURCE_VERSION/blob-report-$PW_SHARD --recursive
+        fi
+      - |
+        if [ "$ROLE" = "merge" ]; then
+          mkdir -p all-blob-reports
+          aws s3 cp s3://$BLOB_BUCKET/$CODEBUILD_RESOLVED_SOURCE_VERSION/ ./all-blob-src --recursive
+          find ./all-blob-src -name '*.zip' -exec mv {} all-blob-reports/ \;
+          export PLAYWRIGHT_HTML_REPORT=./playwright-report
+          export PLAYWRIGHT_JSON_OUTPUT_NAME=./playwright-report/report.json
+          npx playwright merge-reports --reporter html,json ./all-blob-reports
+        fi
 
   post_build:
     commands:
-      - npx tdpw upload ./playwright-report --token="$TESTDINO_TOKEN"
+      - |
+        if [ "$ROLE" = "merge" ]; then
+          npx tdpw upload ./playwright-report --token="$TESTDINO_TOKEN" --upload-html --upload-traces --verbose
+          aws s3 rm s3://$BLOB_BUCKET/$CODEBUILD_RESOLVED_SOURCE_VERSION/ --recursive
+        fi
 
 artifacts:
   files:
     - playwright-report/**/*
-    - test-results/**/*
   discard-paths: no
 
 reports:

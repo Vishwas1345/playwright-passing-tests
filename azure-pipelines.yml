@@ -11,46 +11,81 @@ pr:
 pool:
   vmImage: ubuntu-latest
 
-timeoutInMinutes: 60
+jobs:
+  - job: test
+    displayName: Playwright shard
+    timeoutInMinutes: 60
+    strategy:
+      parallel: 4
+    steps:
+      - task: NodeTool@0
+        displayName: Setup Node.js 20
+        inputs:
+          versionSpec: '20'
 
-steps:
-  - task: NodeTool@0
-    displayName: Setup Node.js 20
-    inputs:
-      versionSpec: '20'
+      - script: npm ci
+        displayName: Install dependencies
 
-  - script: npm ci
-    displayName: Install dependencies
+      - script: npx playwright install --with-deps
+        displayName: Install Playwright browsers
 
-  - script: npx playwright install --with-deps
-    displayName: Install Playwright browsers
+      - script: npx playwright test --shard=$(System.JobPositionInPhase)/$(System.TotalJobsInPhase) --reporter=blob || true
+        displayName: Run Playwright tests (shard $(System.JobPositionInPhase))
 
-  - script: npx playwright test || true
-    displayName: Run Playwright tests
+      - task: PublishPipelineArtifact@1
+        displayName: Publish blob report
+        condition: succeededOrFailed()
+        inputs:
+          targetPath: blob-report
+          artifactName: blob-report-$(System.JobPositionInPhase)
 
-  - script: npx tdpw upload ./playwright-report --token="$TESTDINO_TOKEN"
-    displayName: Upload results to TestDino
+  - job: merge
+    displayName: Merge reports and upload to TestDino
+    dependsOn: test
     condition: always()
-    env:
-      TESTDINO_TOKEN: $(TESTDINO_TOKEN)
+    timeoutInMinutes: 30
+    steps:
+      - task: NodeTool@0
+        displayName: Setup Node.js 20
+        inputs:
+          versionSpec: '20'
 
-  - task: PublishHtmlReport@1
-    displayName: Publish HTML report
-    condition: always()
-    inputs:
-      reportDir: playwright-report
-      tabName: Playwright Report
+      - script: npm ci
+        displayName: Install dependencies
 
-  - task: PublishBuildArtifacts@1
-    displayName: Upload Playwright report
-    condition: always()
-    inputs:
-      PathtoPublish: playwright-report
-      ArtifactName: playwright-report
+      - task: DownloadPipelineArtifact@2
+        displayName: Download blob reports
+        inputs:
+          patterns: 'blob-report-*/**'
+          path: all-blob-src
 
-  - task: PublishBuildArtifacts@1
-    displayName: Upload test results
-    condition: failed()
-    inputs:
-      PathtoPublish: test-results
-      ArtifactName: test-results
+      - script: |
+          mkdir -p all-blob-reports
+          find all-blob-src -name '*.zip' -exec mv {} all-blob-reports/ \;
+        displayName: Flatten blob reports
+
+      - script: npx playwright merge-reports --reporter html,json ./all-blob-reports
+        displayName: Merge reports
+        env:
+          PLAYWRIGHT_HTML_REPORT: ./playwright-report
+          PLAYWRIGHT_JSON_OUTPUT_NAME: ./playwright-report/report.json
+
+      - script: npx tdpw upload ./playwright-report --token="$(TESTDINO_TOKEN)" --upload-html --upload-traces --verbose
+        displayName: Upload results to TestDino
+        condition: always()
+        env:
+          TESTDINO_TOKEN: $(TESTDINO_TOKEN)
+
+      - task: PublishHtmlReport@1
+        displayName: Publish HTML report
+        condition: always()
+        inputs:
+          reportDir: playwright-report
+          tabName: Playwright Report
+
+      - task: PublishBuildArtifacts@1
+        displayName: Upload Playwright report
+        condition: always()
+        inputs:
+          PathtoPublish: playwright-report
+          ArtifactName: playwright-report

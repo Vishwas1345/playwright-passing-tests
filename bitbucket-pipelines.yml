@@ -4,32 +4,54 @@ definitions:
   caches:
     npm: ~/.npm
   steps:
-    - step: &playwright-tests
-        name: Run Playwright tests
+    - step: &shard
+        name: Playwright shard
         size: 2x
         max-time: 60
         caches:
           - npm
           - node
         script:
+          - SHARD=$((BITBUCKET_PARALLEL_STEP + 1))
+          - TOTAL=$BITBUCKET_PARALLEL_STEP_COUNT
           - node -v
           - npm ci
           - npx playwright install --with-deps
-          - npx playwright test || true
+          - npx playwright test --shard=$SHARD/$TOTAL --reporter=blob || true
+          - mv blob-report "blob-report-$SHARD"
+        artifacts:
+          - blob-report-*/**
+
+    - step: &merge
+        name: Merge reports and upload to TestDino
+        size: 2x
+        max-time: 30
+        caches:
+          - npm
+          - node
+        script:
+          - npm ci
+          - mkdir -p all-blob-reports
+          - find blob-report-* -name '*.zip' -exec mv {} all-blob-reports/ \;
+          - export PLAYWRIGHT_HTML_REPORT=./playwright-report
+          - export PLAYWRIGHT_JSON_OUTPUT_NAME=./playwright-report/report.json
+          - npx playwright merge-reports --reporter html,json ./all-blob-reports
           - npx tdpw upload ./playwright-report --token="$TESTDINO_TOKEN" --upload-html --upload-traces --verbose
         artifacts:
           - playwright-report/**
-          - test-results/**
 
 pipelines:
-  default:
-    - step: *playwright-tests
+  default: &sharded-pipeline
+    - parallel:
+        steps:
+          - step: { <<: *shard }
+          - step: { <<: *shard }
+          - step: { <<: *shard }
+          - step: { <<: *shard }
+    - step: *merge
   branches:
-    main:
-      - step: *playwright-tests
+    main: *sharded-pipeline
   pull-requests:
-    '**':
-      - step: *playwright-tests
+    '**': *sharded-pipeline
   custom:
-    manual-run:
-      - step: *playwright-tests
+    manual-run: *sharded-pipeline
