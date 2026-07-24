@@ -1,42 +1,37 @@
 version: 0.2
 
-# Sharded Playwright run for AWS CodeBuild.
+# Sharded Playwright run for AWS CodeBuild, streaming live to TestDino.
 #
-# PREREQUISITES (CodeBuild builds do not share a filesystem, so sharded builds
-# hand their blob reports to the merge build via S3):
-#   1. Enable "Batch build" on the CodeBuild project (build-graph below fans out).
-#   2. Set project env var BLOB_BUCKET to an S3 bucket the build role can
-#      read/write, and TESTDINO_TOKEN to your TestDino token.
-#   3. Grant the CodeBuild service role s3:PutObject/GetObject/DeleteObject/ListBucket
-#      on that bucket.
+# PREREQUISITES:
+#   1. Enable "Batch build" on the CodeBuild project (build-list below fans out
+#      into 4 parallel shard builds).
+#   2. Set the project env var TESTDINO_TOKEN to your TestDino token.
+#
+# NOTE: All shards share TESTDINO_CI_RUN_ID so TestDino groups them into one
+# logical run. CodeBuild batch exposes no batch-unique id across child builds,
+# so we key on the resolved commit sha. Caveat: re-running the batch on the
+# exact same commit will group into the same TestDino run.
 
 batch:
   fast-fail: false
-  build-graph:
+  build-list:
     - identifier: shard1
       env:
-        variables: { ROLE: shard, PW_SHARD: "1", PW_TOTAL: "4" }
+        variables: { PW_SHARD: "1", PW_TOTAL: "4" }
     - identifier: shard2
       env:
-        variables: { ROLE: shard, PW_SHARD: "2", PW_TOTAL: "4" }
+        variables: { PW_SHARD: "2", PW_TOTAL: "4" }
     - identifier: shard3
       env:
-        variables: { ROLE: shard, PW_SHARD: "3", PW_TOTAL: "4" }
+        variables: { PW_SHARD: "3", PW_TOTAL: "4" }
     - identifier: shard4
       env:
-        variables: { ROLE: shard, PW_SHARD: "4", PW_TOTAL: "4" }
-    - identifier: merge
-      depend-on:
-        - shard1
-        - shard2
-        - shard3
-        - shard4
-      env:
-        variables: { ROLE: merge }
+        variables: { PW_SHARD: "4", PW_TOTAL: "4" }
 
 env:
   variables:
     NODE_ENV: test
+    TESTDINO_SERVER_URL: https://analytics.testdino.com
 
 phases:
   install:
@@ -44,43 +39,9 @@ phases:
       nodejs: 20
     commands:
       - npm ci
-      # Browsers are only needed to actually run tests, not to merge reports.
-      - if [ "$ROLE" = "shard" ]; then npx playwright install --with-deps; fi
+      - npx playwright install --with-deps
 
   build:
     commands:
-      - |
-        if [ "$ROLE" = "shard" ]; then
-          npx playwright test --shard=$PW_SHARD/$PW_TOTAL --reporter=blob || true
-          mv blob-report blob-report-$PW_SHARD
-          aws s3 cp blob-report-$PW_SHARD \
-            s3://$BLOB_BUCKET/$CODEBUILD_RESOLVED_SOURCE_VERSION/blob-report-$PW_SHARD --recursive
-        fi
-      - |
-        if [ "$ROLE" = "merge" ]; then
-          mkdir -p all-blob-reports
-          aws s3 cp s3://$BLOB_BUCKET/$CODEBUILD_RESOLVED_SOURCE_VERSION/ ./all-blob-src --recursive
-          find ./all-blob-src -name '*.zip' -exec mv {} all-blob-reports/ \;
-          export PLAYWRIGHT_HTML_REPORT=./playwright-report
-          export PLAYWRIGHT_JSON_OUTPUT_NAME=./playwright-report/report.json
-          npx playwright merge-reports --reporter html,json ./all-blob-reports
-        fi
-
-  post_build:
-    commands:
-      - |
-        if [ "$ROLE" = "merge" ]; then
-          npx tdpw upload ./playwright-report --token="$TESTDINO_TOKEN" --upload-html --upload-traces --verbose
-          aws s3 rm s3://$BLOB_BUCKET/$CODEBUILD_RESOLVED_SOURCE_VERSION/ --recursive
-        fi
-
-artifacts:
-  files:
-    - playwright-report/**/*
-  discard-paths: no
-
-reports:
-  playwright-results:
-    files:
-      - playwright-report/report.json
-    file-format: TESTNGXML
+      - export TESTDINO_CI_RUN_ID=$CODEBUILD_RESOLVED_SOURCE_VERSION
+      - npx playwright test --shard=$PW_SHARD/$PW_TOTAL || true

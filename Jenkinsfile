@@ -25,58 +25,22 @@ pipeline {
                 }
                 agent {
                     docker {
-                        image 'mcr.microsoft.com/playwright:v1.50.0-jammy'
+                        image 'mcr.microsoft.com/playwright:v1.54.1-jammy'
                         args '--ipc=host'
                     }
+                }
+                environment {
+                    TESTDINO_SERVER_URL = 'https://analytics.testdino.com'
+                    // Same ciRunId across all shards -> one logical run in TestDino
+                    TESTDINO_CI_RUN_ID = "${env.BUILD_TAG}"
                 }
                 stages {
                     stage('Run shard') {
                         steps {
                             sh 'npm ci'
-                            sh "npx playwright test --shard=${SHARD}/4 --reporter=blob || true"
-                            sh "mv blob-report blob-report-${SHARD}"
-                            stash name: "blob-${SHARD}", includes: "blob-report-${SHARD}/**"
+                            sh "npx playwright test --shard=${SHARD}/4 || true"
                         }
                     }
-                }
-            }
-        }
-
-        stage('Merge and upload') {
-            agent {
-                docker {
-                    image 'mcr.microsoft.com/playwright:v1.50.0-jammy'
-                    args '--ipc=host'
-                }
-            }
-            steps {
-                sh 'npm ci'
-                unstash 'blob-1'
-                unstash 'blob-2'
-                unstash 'blob-3'
-                unstash 'blob-4'
-                sh 'mkdir -p all-blob-reports && find blob-report-* -name "*.zip" -exec mv {} all-blob-reports/ \\;'
-                sh '''
-                    export PLAYWRIGHT_HTML_REPORT=./playwright-report
-                    export PLAYWRIGHT_JSON_OUTPUT_NAME=./playwright-report/report.json
-                    npx playwright merge-reports --reporter html,json ./all-blob-reports
-                '''
-                sh 'npx tdpw upload ./playwright-report --token="$TESTDINO_TOKEN" --upload-html --upload-traces --verbose'
-            }
-            post {
-                always {
-                    // Archive the merged HTML report and JSON results
-                    archiveArtifacts artifacts: 'playwright-report/**', allowEmptyArchive: true
-
-                    // Publish HTML report in Jenkins UI (requires HTML Publisher plugin)
-                    publishHTML(target: [
-                        allowMissing         : true,
-                        alwaysLinkToLastBuild: true,
-                        keepAll              : true,
-                        reportDir            : 'playwright-report',
-                        reportFiles          : 'index.html',
-                        reportName           : 'Playwright Report'
-                    ])
                 }
             }
         }

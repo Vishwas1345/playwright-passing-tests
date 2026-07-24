@@ -20,11 +20,19 @@ export default defineConfig({
     timeout: 10 * 1000,
   },
 
-// Add this in playwright.config.js|ts|mjs
-reporter: [
-  ['html', { outputDir: './playwright-report' }],
-  ['json', { outputFile: './playwright-report/report.json' }],
-],
+  reporter: [
+    ['list'],
+    ['html', { outputFolder: './playwright-report', open: 'never' }],
+    ['json', { outputFile: './playwright-report/report.json' }],
+    // Real-time streaming to TestDino. Streams results live during the run and
+    // uploads artifacts itself, so no separate upload step is needed.
+    // ciRunId groups all shards of one CI run into a single logical run; it is
+    // set per-provider in CI (falls back to undefined for local, unsharded runs).
+    ['@testdino/playwright', {
+      token: process.env.TESTDINO_TOKEN,
+      ciRunId: process.env.TESTDINO_CI_RUN_ID,
+    }],
+  ],
 
   use: {
     baseURL: 'https://storedemo.testdino.com/products',

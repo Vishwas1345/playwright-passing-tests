@@ -1,4 +1,4 @@
-image: mcr.microsoft.com/playwright:v1.50.0-jammy
+image: mcr.microsoft.com/playwright:v1.54.1-jammy
 
 definitions:
   caches:
@@ -12,33 +12,15 @@ definitions:
           - npm
           - node
         script:
-          - SHARD=$((BITBUCKET_PARALLEL_STEP + 1))
-          - TOTAL=$BITBUCKET_PARALLEL_STEP_COUNT
+          - export SHARD=$((BITBUCKET_PARALLEL_STEP + 1))
+          - export TOTAL=$BITBUCKET_PARALLEL_STEP_COUNT
+          - export TESTDINO_SERVER_URL=https://analytics.testdino.com
+          # Same ciRunId across all shards -> one logical run in TestDino
+          - export TESTDINO_CI_RUN_ID=$BITBUCKET_BUILD_NUMBER
           - node -v
           - npm ci
           - npx playwright install --with-deps
-          - npx playwright test --shard=$SHARD/$TOTAL --reporter=blob || true
-          - mv blob-report "blob-report-$SHARD"
-        artifacts:
-          - blob-report-*/**
-
-    - step: &merge
-        name: Merge reports and upload to TestDino
-        size: 2x
-        max-time: 30
-        caches:
-          - npm
-          - node
-        script:
-          - npm ci
-          - mkdir -p all-blob-reports
-          - find blob-report-* -name '*.zip' -exec mv {} all-blob-reports/ \;
-          - export PLAYWRIGHT_HTML_REPORT=./playwright-report
-          - export PLAYWRIGHT_JSON_OUTPUT_NAME=./playwright-report/report.json
-          - npx playwright merge-reports --reporter html,json ./all-blob-reports
-          - npx tdpw upload ./playwright-report --token="$TESTDINO_TOKEN" --upload-html --upload-traces --verbose
-        artifacts:
-          - playwright-report/**
+          - npx playwright test --shard=$SHARD/$TOTAL || true
 
 pipelines:
   default: &sharded-pipeline
@@ -48,7 +30,6 @@ pipelines:
           - step: { <<: *shard }
           - step: { <<: *shard }
           - step: { <<: *shard }
-    - step: *merge
   branches:
     main: *sharded-pipeline
   pull-requests:
