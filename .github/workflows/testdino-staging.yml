@@ -1,0 +1,46 @@
+name: TestDino Staging Verification
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Verify staging secret
+        env:
+          TESTDINO_TOKEN: ${{ secrets.TESTDINO_TOKEN }}
+        run: |
+          if [ -z "$TESTDINO_TOKEN" ]; then
+            echo "TESTDINO_TOKEN secret is not set" >&2
+            exit 1
+          fi
+
+      - name: Run Playwright tests (stream to TestDino staging)
+        env:
+          TESTDINO_TOKEN: ${{ secrets.TESTDINO_TOKEN }}
+          # Repo variable overrides the default staging reporter.
+          TESTDINO_SERVER_URL: ${{ vars.TESTDINO_SERVER_URL || 'https://stg-reporter.testdino.com' }}
+          TESTDINO_CI_RUN_ID: ${{ github.run_id }}
+        # tdpw (not bare playwright) so TestDino Actions rules apply: skip rules
+        # compile to --grep-invert pre-run, quarantine neutralizes the exit code
+        # when every failure is quarantine-matched.
+        run: npx tdpw test
