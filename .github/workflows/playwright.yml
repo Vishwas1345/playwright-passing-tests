@@ -37,7 +37,7 @@ jobs:
       - name: Run Playwright tests (stream to TestDino)
         env:
           TESTDINO_TOKEN: ${{ secrets.TESTDINO_TOKEN }}
-          TESTDINO_SERVER_URL: https://analytics.testdino.com
+          TESTDINO_SERVER_URL: ${{ secrets.TESTDINO_SERVER_URL }}
           # Same ciRunId across all shards -> one logical run in TestDino
           TESTDINO_CI_RUN_ID: ${{ github.run_id }}
         run: npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }} || true
