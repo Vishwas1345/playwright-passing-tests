@@ -22,8 +22,7 @@ npx playwright test --project=webkit
 
 # Run mobile tests
 npx playwright test --project=android
-npx playwright test --project=ios
-
+npx playwright test --project=iosvsv
 # Run API tests
 npx playwright test --project=api
 
