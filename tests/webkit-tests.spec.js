@@ -22,7 +22,7 @@ test.describe('WebKit Date Operations @webkit', () => {
   });
 
   test('date comparison', async () => {
-    const date1 = new Date('2025-01-01');
+    const date1 = new Date('2025-01-01222');
     const date2 = new Date('2025-12-31');
     expect(date1.getTime()).toBeLessThan(date2.getTime());
   });
