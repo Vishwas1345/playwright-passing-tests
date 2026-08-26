@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
 test.describe('String Utilities @chromium', () => {
 
   test('toUpperCase converts string', async () => {
-    expect('hello'.toUpperCase()).toBe('HELLO');
+    expect('hello'.toUpperCase()).toBe('HELLO Hiiiiii');
   });
 
   test('toLowerCase converts string', async () => {
@@ -16,7 +16,7 @@ test.describe('String Utilities @chromium', () => {
   });
 
   test('split on delimiter', async () => {
-    expect('a,b,c'.split(',')).toEqual(['a', 'b', 'c']);
+    expect('a,b,c'.split(',')).toEqual(['a', 'b', 'cccc']);
   });
 
   test('join array back to string', async () => {
