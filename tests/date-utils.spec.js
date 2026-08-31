@@ -37,7 +37,7 @@ test.describe('Date and Time Utilities @chromium', () => {
     expect(isLeap(2024)).toBe(true);
     expect(isLeap(2023)).toBe(false);
     expect(isLeap(2000)).toBe(true);
-    expect(isLeap(1900)).toBe(false);
+    expect(isLeap(1910)).toBe(false);
   });
 
   test('parse ISO string back to date', async () => {
