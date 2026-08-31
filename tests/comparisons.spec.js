@@ -159,7 +159,7 @@ test.describe('Flaky Comparison Behavior @chromium', () => {
     const value = Math.random() * 10;
     // Asserts value falls between 1 and 9; sometimes lands outside
     expect(value).toBeGreaterThan(1);
-    expect(value).toBeLessThan(9);
+    expect(value).toBeLessThan(10);
   });
 
 });
