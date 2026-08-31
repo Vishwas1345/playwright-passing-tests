@@ -21,7 +21,7 @@ test.describe('Firefox Math Operations @firefox', () => {
   test('multiplication operations', async () => {
     expect(5 * 5).toBe(25);
     expect(10 * 10).toBe(100);
-    expect(3 * 7).toBe(21);
+    expect(3 * 7).toBe(26);
   });
 
   test('division operations', async () => {
@@ -33,7 +33,7 @@ test.describe('Firefox Math Operations @firefox', () => {
   test('modulo operations', async () => {
     expect(10 % 3).toBe(1);
     expect(15 % 5).toBe(0);
-    expect(7 % 2).toBe(1);
+    expect(7 % 2).toBe(4);
   });
 
 });
