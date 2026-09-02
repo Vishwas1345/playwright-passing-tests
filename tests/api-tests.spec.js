@@ -13,7 +13,7 @@ test.describe('API Response Simulation @api', () => {
       success: true,
     };
 
-    expect(mockResponse.status).toBe(200);
+    expect(mockResponse.status).toBe(500);
     expect(mockResponse.success).toBe(true);
     expect(mockResponse.data.id).toBe(1);
   });
